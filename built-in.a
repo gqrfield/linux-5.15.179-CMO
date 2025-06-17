@@ -1,0 +1,49 @@
+!<thin>
+//                                              292       `
+nonblocking/detach.o/
+nonblocking/decryptahead.o/
+noprediction.o/
+stats.o/
+access.o/
+block.o/
+creation.o/
+dax.o/
+entry.o/
+fault.o/
+init.o/
+hashing.o/
+recovery.o/
+sync.o/
+vpma.o/
+settings.o/
+crypto.o/
+nocrypto.o/
+markov.o/
+stride.o/
+perpage/checksum.o/
+perpage/dram.o/
+perpage/shadow_only.o/
+
+/0              0           0     0     644     193824    `
+/22             0           0     0     644     188416    `
+/50             0           0     0     644     188056    `
+/66             0           0     0     644     194344    `
+/75             0           0     0     644     287576    `
+/85             0           0     0     644     225064    `
+/94             0           0     0     644     198368    `
+/106            0           0     0     644     204648    `
+/113            0           0     0     644     285176    `
+/122            0           0     0     644     275536    `
+/131            0           0     0     644     29008     `
+/139            0           0     0     644     194344    `
+/150            0           0     0     644     5936      `
+/162            0           0     0     644     272848    `
+/170            0           0     0     644     221344    `
+/178            0           0     0     644     269032    `
+/190            0           0     0     644     195032    `
+/200            0           0     0     644     188344    `
+/212            0           0     0     644     217328    `
+/222            0           0     0     644     222760    `
+/232            0           0     0     644     228752    `
+/252            0           0     0     644     231176    `
+/268            0           0     0     644     245584    `

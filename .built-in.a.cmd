@@ -1,0 +1,1 @@
+cmd_cmo/built-in.a := echo >/dev/null; rm -f cmo/built-in.a; ar cDPrST cmo/built-in.a cmo/nonblocking/built-in.a cmo/noprediction.o cmo/stats.o cmo/access.o cmo/block.o cmo/creation.o cmo/dax.o cmo/entry.o cmo/fault.o cmo/init.o cmo/hashing.o cmo/recovery.o cmo/sync.o cmo/vpma.o cmo/settings.o cmo/crypto.o cmo/nocrypto.o cmo/markov.o cmo/stride.o cmo/perpage/built-in.a
