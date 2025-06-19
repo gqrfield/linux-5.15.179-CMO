@@ -104,7 +104,7 @@ inline void add_to_dirtypages(struct vpma_area_struct *vpma,
 inline void vpma_clear(struct vpma_area_struct *vpma)
 {
 	if(vpma->addr_phys_start)
-		cmo_unmap(vpma->name);
+		cmo_unmap(vpma->pmo_ptr->name);
 
 	if(vpma->faulted_pages_ll)
 		kvfree(vpma->faulted_pages_ll);

@@ -1288,6 +1288,7 @@ deps_cmo/perpage/shadow_only.o := \
   include/linux/kfifo.h \
   include/crypto/hash.h \
   cmo/perpage/../pagewalk.h \
+  cmo/perpage/../pmo.h \
   cmo/perpage/../nopagewalk.h \
   cmo/perpage/../checksum.h \
   cmo/perpage/../crypto.h \

@@ -1184,6 +1184,7 @@ deps_cmo/perpage/dram.o := \
     $(wildcard include/config/CRYPTO_STATS) \
   include/crypto/skcipher.h \
   cmo/perpage/../pagewalk.h \
+  cmo/perpage/../pmo.h \
   cmo/perpage/../nopagewalk.h \
   cmo/perpage/../checksum.h \
   cmo/perpage/../crypto.h \

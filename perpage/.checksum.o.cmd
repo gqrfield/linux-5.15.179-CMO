@@ -1184,6 +1184,7 @@ deps_cmo/perpage/checksum.o := \
     $(wildcard include/config/ARCH_HAS_PMEM_API) \
   include/crypto/skcipher.h \
   cmo/perpage/../pagewalk.h \
+  cmo/perpage/../pmo.h \
   cmo/perpage/../nopagewalk.h \
   cmo/perpage/../checksum.h \
   cmo/perpage/../crypto.h \

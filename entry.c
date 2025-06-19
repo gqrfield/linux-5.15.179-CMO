@@ -245,7 +245,7 @@ inline void *pmo_map(unsigned long int ptr, size_t size)
 inline void cmo_unmap(char *name) 
 {
 	printk("Unmapping %s\n", name);
-	cmo_recycle(name);
+	cmo_recycle(djb2_hash(name));
 //	PMO_DAX_IS_ENABLED() ? pmo_dax_unmap(ptr) : pmo_block_unmap(ptr);
 	return;
 }

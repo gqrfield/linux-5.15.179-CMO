@@ -1184,6 +1184,7 @@ deps_cmo/nonblocking/decryptahead.o := \
     $(wildcard include/config/CRYPTO_STATS) \
   include/crypto/skcipher.h \
   cmo/nonblocking/../pagewalk.h \
+  cmo/nonblocking/../pmo.h \
   cmo/nonblocking/../nopagewalk.h \
   cmo/nonblocking/../checksum.h \
   cmo/nonblocking/../crypto.h \
