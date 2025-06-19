@@ -1070,7 +1070,7 @@ inline struct pmo_pages * vpma_insert_into_faulted_pages(struct vpma_area_struct
 		unsigned long pfn, size_t offset, pte_t *pte, spinlock_t *ptl);
 
 #define create_dirty_sentinel() \
-	create_dirty_ll(-1, (void *)-1, (void *)-1, (void *)-1)
+	create_dirty_ll(-1, -1);
 
 
 
