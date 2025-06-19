@@ -141,6 +141,12 @@ struct pmo_pages * vpma_insert_into_dirtypages(struct vpma_area_struct *vpma,
 		unsigned long pfn, size_t offset, pte_t *pte, spinlock_t *ptl)
 {
 	struct pmo_pages *tmp_ptr = create_dirty_ll(offset, vpma);
+
+	if (!tmp_ptr) {
+		printk(KERN_ERR "PMO: create_dirty_ll failed for offset %zu\n", offset);
+		return NULL;
+	}
+
 	if(!vpma->dirty_pages_ll)
 		vpma->dirty_pages_ll = create_pages_ll(-1, -1);
 
