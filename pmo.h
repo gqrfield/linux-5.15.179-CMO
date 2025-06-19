@@ -1062,8 +1062,7 @@ void pmo_invalidate_page (struct vpma_area_struct *vpma, unsigned long int pagen
 #define pmo_do_sg_init(sg, page) \
 	sg_init_one(&sg, page, PAGE_SIZE);
 
-struct pmo_pages *create_dirty_ll(unsigned long int offset, void *primary,
-		void *shadow, void *working);
+struct pmo_pages *create_dirty_ll(unsigned long int offset, struct vpma_area_struct *vpma);
 struct pmo_pages *create_pages_ll(unsigned long int address, unsigned long int offset);
 inline struct pmo_pages * vpma_insert_into_dirtypages(struct vpma_area_struct *vpma,
 		unsigned long pfn, size_t offset, pte_t *pte, spinlock_t *ptl);

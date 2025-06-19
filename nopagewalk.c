@@ -24,23 +24,17 @@
 void _traverse_handle_pmo_entry(struct vpma_area_struct *vpma,
 		pte_t *pte, unsigned long pagenum, char flag)
 {
-	size_t offset = pagenum * PAGE_SIZE;
-	struct vm_area_struct *vma = vpma->vma;
-	unsigned long shadow = (unsigned long) vpma->shadow;
-
 	/* Should I persist the page? */
 	if (flag & DB_PERSIST) {
-		pmo_sync ((void *) shadow + offset, PAGE_SIZE);
-		pmo_obtain_shadow_hash (vpma, pagenum);
-		pmo_inc_encrypted_pages (vpma);
 	}
 
-	if (IS_ENABLED (CONFIG_PMO_USE_PREDICTION)) 
-		pmo_handle_prediction_pte(vpma, shadow + offset, pte);
-	else if (IS_ENABLED (CONFIG_PMO_PARANOID_MODE)) 
-		pmo_invalidate_pte(shadow + offset, pte);
-	else if (flag & DB_CLEAR) 
+	if (IS_ENABLED (CONFIG_PMO_USE_PREDICTION))
+		pmo_handle_prediction_pte(vpma, (vpma->addr_phys_start) + (pagenum * PAGE_SIZE), pte);
+	else if (IS_ENABLED (CONFIG_PMO_PARANOID_MODE))
+		pmo_invalidate_pte((vpma->addr_phys_start) + (pagenum * PAGE_SIZE), pte);
+	else if (flag & DB_CLEAR)
 		pmo_clear_dirty(pte);
+
 	return;
 }
 
@@ -109,8 +103,8 @@ inline void add_to_dirtypages(struct vpma_area_struct *vpma,
 
 inline void vpma_clear(struct vpma_area_struct *vpma)
 {
-	if(vpma->pfn_phys_start)
-		pmo_unmap(vpma->name);
+	if(vpma->addr_phys_start)
+		cmo_unmap(vpma->name);
 
 	if(vpma->faulted_pages_ll)
 		kvfree(vpma->faulted_pages_ll);
@@ -123,7 +117,7 @@ inline void vpma_clear(struct vpma_area_struct *vpma)
         vpma->dirty_pages_ll = 0;
 
 	vpma->pmo_ptr = 0;
-	vpma->pfn_phys_start = 0;
+	vpma->addr_phys_start = 0;
 
 	kmem_cache_free(pmo_area_cachep, vpma);
 	vpma->is_initialized = false;
@@ -135,11 +129,8 @@ inline void vpma_init(struct vpma_area_struct *vpma)
 {
         pmo_init_tracking(vpma);
         vpma->faulted_pages_ll = NULL;
-	vpma->dirty_pages_ll = NULL;
+		vpma->dirty_pages_ll = NULL;
         vpma->vma = NULL;
-        vpma->primary = NULL;
-        vpma->shadow = NULL;
-        vpma->phys_shadow = 0;
         vpma->current_mm = NULL;
         mutex_init(&vpma->psync_mutex);
         mutex_init(&vpma->page_mutex);
@@ -149,8 +140,7 @@ inline void vpma_init(struct vpma_area_struct *vpma)
 struct pmo_pages * vpma_insert_into_dirtypages(struct vpma_area_struct *vpma,
 		unsigned long pfn, size_t offset, pte_t *pte, spinlock_t *ptl)
 {
-	struct pmo_pages *tmp_ptr = create_dirty_ll(offset, vpma->primary, vpma->shadow,
-			PMO_DRAM_IS_ENABLED() ? vpma->working : NULL);
+	struct pmo_pages *tmp_ptr = create_dirty_ll(offset, vpma);
 	if(!vpma->dirty_pages_ll)
 		vpma->dirty_pages_ll = create_pages_ll(-1, -1);
 
@@ -165,4 +155,3 @@ struct pmo_pages * vpma_insert_into_dirtypages(struct vpma_area_struct *vpma,
 
 	return tmp_ptr;
 }
-

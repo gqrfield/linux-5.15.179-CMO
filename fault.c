@@ -198,7 +198,7 @@ void _handle_markov_or_stride(struct vpma_area_struct *vpma, unsigned long int p
 struct pmo_pages * pmo_handle_pagefault(struct vm_area_struct *vma, size_t address)
 {
 	/* FIXME: don't use double pointers for this */
-	struct pmo_pages *temp_dirtypage;
+	struct pmo_pages *temp_dirtypage = NULL;
 	struct vpma_area_struct *vpma = vma->vpma;
 
 	/* TODO, FIXME. If PMO_DRAM_IS_ENABLED() is true,
@@ -293,9 +293,14 @@ handle_page_destroyed:
         
 	/* If we're using the no pagewalk model, we'll add this to the
 	 * dirtypages as well, If we've got the PTE, we'll add that as well. */
-	temp_dirtypage = vpma_insert_into_dirtypages(vpma, pfn, offset,
-			not_mapped ? NULL : pte, not_mapped ? NULL : ptl); 
-	
+	if (IS_ENABLED(CONFIG_PMO_NO_PAGEWALK) && not_mapped) {
+		if(follow_pte(vma->vm_mm, address, &pte, &ptl) == 0) {
+			temp_dirtypage = vpma_insert_into_dirtypages(vpma, pfn, offset, pte, ptl);
+			pte_unmap_unlock(pte, ptl);
+		}
+	} else {
+		temp_dirtypage = vpma_insert_into_dirtypages(vpma, pfn, offset, not_mapped ? NULL : pte, not_mapped ? NULL : ptl);
+	}
 
 out2:
 	pmo_stats_stop_fault_time(mm->pmo_stats, tick, tock);

@@ -24,6 +24,9 @@
 #include "pagewalk.h"
 #include "nopagewalk.h"
 
+void memcpy_dirtypages(struct pmo_pages **dirty_ll, struct vpma_area_struct *vpma);
+
+
 /* PSYNC */
 /* systemcall */
 SYSCALL_DEFINE2(psync, __u64, starting_vma_address, __u64, size)
@@ -94,7 +97,7 @@ SYSCALL_DEFINE2(psync, __u64, starting_vma_address, __u64, size)
 
 void pmo_sync_pages(struct vpma_area_struct *vpma, size_t starting_vma_address, bool update_checksum)
 {
-	struct pmo_pages *dirty_ll;
+	struct pmo_pages *dirty_ll = NULL;
 	__maybe_unused struct mm_struct *mm = current->mm;
 	__maybe_unused char sha256hash[32];
 	__maybe_unused struct pmo_entry *pmo = vpma->pmo_ptr;
@@ -109,7 +112,7 @@ void pmo_sync_pages(struct vpma_area_struct *vpma, size_t starting_vma_address, 
 	mutex_lock(&vpma->page_mutex);
 	IS_ENABLED(CONFIG_PMO_PAGEWALK) ? 
 		pmo_persist(vpma, starting_vma_address, &dirty_ll) :
-		pmo_persist(vpma, 0, NULL);
+		pmo_persist(vpma, 0, &dirty_ll);
 	mutex_unlock(&vpma->page_mutex);
 
 	/* Step 2: Persist and optionally encrypt or writeback the pages found
@@ -144,28 +147,24 @@ void pmo_sync_pages(struct vpma_area_struct *vpma, size_t starting_vma_address, 
 	return;
 }
 
-struct pmo_pages *create_dirty_ll(unsigned long int offset, void *primary,
-		void *shadow, void *working)
+struct pmo_pages *create_dirty_ll(unsigned long int offset, struct vpma_area_struct *vpma)
 {
 	struct pmo_pages *dirty_ll;
-	void *primary_page, *shadow_page;
+	void *primary_page;
 
 	if(offset < 0)
 		return NULL;
+
+	if (!vpma || !vpma->virt_ptr)
+		return NULL;
+
 	dirty_ll = kmalloc(sizeof(struct pmo_pages), GFP_KERNEL);
 	INIT_LIST_HEAD(&dirty_ll->list);
 
 
-	primary_page = primary + offset,
-	shadow_page = shadow + offset;
+	primary_page = vpma->virt_ptr + offset;
 
 	pmo_do_sg_init(dirty_ll->sg_primary, primary_page);
-	pmo_do_sg_init(dirty_ll->sg_shadow, shadow_page);
-
-	if (!PMO_DRAM_AS_BUFFER_IS_ENABLED() && PMO_DRAM_IS_ENABLED()) {
-		BUG_ON(!working);
-		pmo_do_sg_init(dirty_ll->sg_working, working);
-	}
 
 	dirty_ll->pagenum = offset/PAGE_SIZE;
 
@@ -203,7 +202,7 @@ void _pmo_block_handle_sync(struct vpma_area_struct *vpma, size_t pagenum)
 
 void memcpy_dirtypages(struct pmo_pages **dirty_ll, struct vpma_area_struct *vpma)
 {
-        struct pmo_pages *cursor, *temp;
+    struct pmo_pages *cursor, *temp;
 	__maybe_unused struct mm_struct *mm = current->mm;
 	__maybe_unused struct crypto_skcipher *tfm;
 	__maybe_unused struct skcipher_request *req;
@@ -219,18 +218,18 @@ void memcpy_dirtypages(struct pmo_pages **dirty_ll, struct vpma_area_struct *vpm
 	/* This is the first point in which the primary is being overwritten,
 	 * so this is the first point where we emit a write barrier */
 	pmo_barrier();
-        
-	/* This may eventually be a failure condition, but for now, we do 
+
+	/* This may eventually be a failure condition, but for now, we do
 	 * nothing more. This really shouldn't happen, so log the condition. */
 	WARN_ON(pmo_test_and_lock(3, pmo));
-	
+
 	/* FIXME: How can the page be destroyed if it's dirty...? */
 	pmo_stats_start_psynctime_encrypt(mm->pmo_stats);
 	list_for_each_entry_safe(cursor, temp, &(*dirty_ll)->list, list) {
 		if(!PMO_PAGE_IS_DESTROYED(vpma, cursor->pagenum)) {
 			pmo_handle_memcpy_sync(req, vpma, cursor->pagenum, local_iv,
 					&cursor->sg_primary, &cursor->sg_shadow,
-					(PMO_DRAM_IS_ENABLED() && 
+					(PMO_DRAM_IS_ENABLED() &&
 					!PMO_DRAM_AS_BUFFER_IS_ENABLED()) ?
 					&cursor->sg_working : NULL);
 		}
@@ -258,12 +257,6 @@ void memcpy_dirtypages(struct pmo_pages **dirty_ll, struct vpma_area_struct *vpm
 	if(PMO_PPs_IS_ENABLED())
 		skcipher_request_free(req);
 
-	/*
-	if(PMO_BLOCK_IS_ENABLED())
-		vfs_fsync(PMO_FILE_PTR, 0);
-		*/
-
-	
-        return;
+	return;
 }
 
