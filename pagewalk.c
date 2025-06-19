@@ -85,11 +85,11 @@ inline void add_to_dirtypages(struct vpma_area_struct *vpma,
 inline void vpma_clear(struct vpma_area_struct *vpma)
 {
 	pmo_kill_disable_thread(vpma);
-        vpma->pmo_ptr = 0;
 
         if(vpma->addr_phys_start)
                 cmo_unmap(vpma->pmo_ptr->name);
 
+        vpma->pmo_ptr = 0;
         vpma->addr_phys_start = 0;
         vpma->is_initialized = false;
 
